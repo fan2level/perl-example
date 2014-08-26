@@ -38,13 +38,23 @@ sub version{
 }
 
 sub get_stock_code_list{
-  return unless(-d $data_directory);
-  return unless(-e "$data_directory/$file_stock_code");
+  # return unless(-d $data_directory);
+  # return unless(-e "$data_directory/$file_stock_code");
 
   my %stock_code_data;
 
-  open STOCK_CODE, "<$data_directory/$file_stock_code" or die "can't open $file_stock_code";
-  # binmode(STOCK_CODE, ':encoding(cp949)'); # important !!!
+  unless(open STOCK_CODE, "<$data_directory/$file_stock_code"){
+    mkdir $data_directory unless(-d $data_directory);
+    unless(open STOCK_CODE, ">$data_directory/$file_stock_code"){
+      print "fail: fail to creat $file_stock_code\n";
+      return;
+    }
+    close STOCK_CODE;
+    print "create $file_stock_code\n";
+    return;
+  }
+
+  binmode(STOCK_CODE, ':encoding(cp949)'); # important !!!
   while(defined(my $line = <STOCK_CODE>)){
     next if $line =~ m/^\s$/;	# blank line
     next if $line =~ m/^\s*#.*$/; # comment line by '#'
@@ -62,14 +72,18 @@ sub get_stock_code_list{
 
 sub set_stock_code_list{
   my $stock_code_data_ref = shift;
-  my %stock_code_data     = get_stock_code_list;
+  my %stock_code_data     = get_stock_code_list();
 
   return unless(defined($stock_code_data_ref));
   # return unless(%stock_code_data);
 
   $stock_code_data{$_} = $stock_code_data_ref->{$_} foreach (keys %$stock_code_data_ref);
 
-  open STOCK_CODE_LIST, ">$data_directory/$file_stock_code" or die "can't open $file_stock_code";
+  unless(open STOCK_CODE_LIST, ">$data_directory/$file_stock_code"){
+    print "fail: fail to create $file_stock_code\n";
+    return;
+  }
+  binmode(STOCK_CODE_LIST, ':encoding(cp949)'); # important !!!
   print STOCK_CODE_LIST "$_ $stock_code_data{$_}\n" foreach (sort {$a cmp $b} keys %stock_code_data);
   close STOCK_CODE_LIST;
 }
@@ -92,7 +106,11 @@ sub fetch_stock_code_list{
 
   while(1){
     $url = sprintf $url_format, $stock_kind{$stock_kind}, $page;
-    $content = get $url or die "unable to get $url\n";
+    $content = get $url;
+    unless($content){
+      print "fail: $url\n";
+      last;
+    }
 
     $page++;
     foreach my $line (split(/\n/, $content)) {
@@ -134,7 +152,7 @@ sub get_data{
 
 sub set_data{
   my ($code, $data_ref) = @_;
-  my %stock_code_data = get_stock_code_list;;
+  my %stock_code_data = get_stock_code_list();
   my %stock_data;
   my $stock_kind;
   my $stock_directory;
@@ -156,7 +174,10 @@ sub set_data{
   %stock_data = get_data($code);
   $stock_data{$_} = $data_ref->{$_} foreach (keys %$data_ref);
 
-  open STOCK_DATA, ">$stock_directory/$code" or die "can't open $code";
+  unless(open STOCK_DATA, ">$stock_directory/$code"){
+    print "fail: fail to create $code\n";
+    return;
+  }
   print STOCK_DATA "$_ $stock_data{$_}\n" foreach (sort {$a cmp $b} keys %stock_data);
   close STOCK_DATA;
 }
@@ -183,8 +204,8 @@ sub fetch_data{
 
     $url = sprintf $url_format, $stock_code, $page;
     $content = get $url;
-    if (!defined($content)){
-      print "$url\n";
+    unless($content){
+      print "fail: $url\n";
       next;
     }
     $page++;
