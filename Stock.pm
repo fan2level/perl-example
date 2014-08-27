@@ -130,24 +130,24 @@ sub fetch_stock_code_list{
 
 sub get_data{
   my ($code, $date_begin, $date_end) = @_;
-  my %stock_code_data = get_stock_code_list();
+  # my %stock_code_data = get_stock_code_list();
   my %stock_data;
-  my $stock_directory;
+  # my $stock_directory;
 
   return unless(defined($code));
-  return unless(%stock_code_data);
-  return unless(defined($stock_code_data{$code}));
+  # return unless(%stock_code_data);
+  # return unless(defined($stock_code_data{$code}));
 
-  if(grep(/.*KOSPI.*/,split(/\s+/, $stock_code_data{$code}))){
-    $stock_directory = "$data_directory/KOSPI";
-  }elsif(grep(/.*KOSDAQ.*/,split(/\s+/, $stock_code_data{$code}))){
-    $stock_directory = "$data_directory/KOSDAQ";
-  }else{
-    print "fail: what kind of stock is $code?\n";
-    return;
-  }
+  # if(grep(/.*KOSPI.*/,split(/\s+/, $stock_code_data{$code}))){
+  #   $stock_directory = "$data_directory/KOSPI";
+  # }elsif(grep(/.*KOSDAQ.*/,split(/\s+/, $stock_code_data{$code}))){
+  #   $stock_directory = "$data_directory/KOSDAQ";
+  # }else{
+  #   print "fail: what kind of stock is $code?\n";
+  #   return;
+  # }
 
-  unless(open STOCK_DATA, "<$stock_directory/$code"){
+  unless(open STOCK_DATA, "<$data_directory/$code"){
     print "fail: fail to open $code\n";
     return;
   }
@@ -167,24 +167,24 @@ sub get_data{
 
 sub set_data{
   my ($code, $data_ref) = @_;
-  my %stock_code_data = get_stock_code_list();
+  # my %stock_code_data = get_stock_code_list();
   my %stock_data;
   my $stock_kind;
-  my $stock_directory;
+  # my $stock_directory;
 
   return unless(defined($code) or defined($data_ref));
-  return unless(%stock_code_data);
-  return unless(defined($stock_code_data{$code}));
+  # return unless(%stock_code_data);
+  # return unless(defined($stock_code_data{$code}));
 
-  if(grep(/.*KOSPI.*/,split(/\s+/, $stock_code_data{$code}))){
-    $stock_directory = "$data_directory/KOSPI";
-  }elsif(grep(/.*KOSDAQ.*/,split(/\s+/, $stock_code_data{$code}))){
-    $stock_directory = "$data_directory/KOSDAQ";
-  }else{
-    print "$code error\n";
-    return;
-  }
-  mkdir $stock_directory unless(-d $stock_directory);
+  # if(grep(/.*KOSPI.*/,split(/\s+/, $stock_code_data{$code}))){
+  #   $stock_directory = "$data_directory/KOSPI";
+  # }elsif(grep(/.*KOSDAQ.*/,split(/\s+/, $stock_code_data{$code}))){
+  #   $stock_directory = "$data_directory/KOSDAQ";
+  # }else{
+  #   print "$code error\n";
+  #   return;
+  # }
+  mkdir $data_directory unless(-d $data_directory);
 
   %stock_data = get_data($code);
 
@@ -196,7 +196,7 @@ sub set_data{
     $stock_data{$_} = $data_ref->{$_};
   }
 
-  unless(open STOCK_DATA, ">$stock_directory/$code"){
+  unless(open STOCK_DATA, ">$data_directory/$code"){
     print "fail: fail to create $code\n";
     return;
   }
