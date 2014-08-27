@@ -161,9 +161,9 @@ sub set_data{
   return unless(%stock_code_data);
   return unless($stock_code_data{$code});
 
-  if(grep("KOSPI",split(/\s+/, $stock_code_data{$code}))){
+  if(grep(/.*KOSPI.*/,split(/\s+/, $stock_code_data{$code}))){
     $stock_directory = "$data_directory/KOSPI";
-  }elsif(grep("KODAQ",split(/\s+/, $stock_code_data{$code}))){
+  }elsif(grep(/.*KOSDAQ.*/,split(/\s+/, $stock_code_data{$code}))){
     $stock_directory = "$data_directory/KOSDAQ";
   }else{
     print "$code error\n";
