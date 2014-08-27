@@ -130,12 +130,27 @@ sub fetch_stock_code_list{
 
 sub get_data{
   my ($code, $date_begin, $date_end) = @_;
+  my %stock_code_data = get_stock_code_list();
   my %stock_data;
+  my $stock_directory;
 
   return unless(defined($code));
+  return unless(%stock_code_data);
+  return unless(defined($stock_code_data{$code}));
 
-  # fixme: check 'KOSPI' or 'KOSDAQ'
-  open STOCK_DATA, "<$data_directory/KOSPI/$code" or return ();# warn "can't open $code";
+  if(grep(/.*KOSPI.*/,split(/\s+/, $stock_code_data{$code}))){
+    $stock_directory = "$data_directory/KOSPI";
+  }elsif(grep(/.*KOSDAQ.*/,split(/\s+/, $stock_code_data{$code}))){
+    $stock_directory = "$data_directory/KOSDAQ";
+  }else{
+    print "fail: what kind of stock is $code?\n";
+    return;
+  }
+
+  unless(open STOCK_DATA, "<$stock_directory/$code"){
+    print "fail: fail to open $code\n";
+    return;
+  }
   while(defined(my $line = <STOCK_DATA>)){
     $line =~ m/(\S+)\s+(.*)/;
     last unless(defined($1) or defined($2));
@@ -159,7 +174,7 @@ sub set_data{
 
   return unless(defined($code) or defined($data_ref));
   return unless(%stock_code_data);
-  return unless($stock_code_data{$code});
+  return unless(defined($stock_code_data{$code}));
 
   if(grep(/.*KOSPI.*/,split(/\s+/, $stock_code_data{$code}))){
     $stock_directory = "$data_directory/KOSPI";
@@ -172,13 +187,20 @@ sub set_data{
   mkdir $stock_directory unless(-d $stock_directory);
 
   %stock_data = get_data($code);
-  $stock_data{$_} = $data_ref->{$_} foreach (keys %$data_ref);
+
+  foreach (keys %$data_ref){
+    if (defined($stock_data{$_})){
+      # print "warn: duplicate $_ \n"; many log
+      next;
+    }
+    $stock_data{$_} = $data_ref->{$_};
+  }
 
   unless(open STOCK_DATA, ">$stock_directory/$code"){
     print "fail: fail to create $code\n";
     return;
   }
-  print STOCK_DATA "$_ $stock_data{$_}\n" foreach (sort {$a cmp $b} keys %stock_data);
+  print STOCK_DATA "$_ $stock_data{$_}\n" foreach (sort {$b cmp $a} keys %stock_data);
   close STOCK_DATA;
 }
 
@@ -239,7 +261,7 @@ sub fetch_data{
       $shares_of_foreign=~ s/,//g;
       $rates_of_foreign=~ s/,//g;
 
-      $data{$date} = "$date $closing_price $trading_volume $exchange_amount_of_agency $exchange_amount_of_foreign $shares_of_foreign $rates_of_foreign";
+      $data{$date} = "$closing_price $trading_volume $exchange_amount_of_agency $exchange_amount_of_foreign $shares_of_foreign $rates_of_foreign";
       $page_valid = 1;
     }
 
