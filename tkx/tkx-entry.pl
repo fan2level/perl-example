@@ -13,10 +13,13 @@ my $wgFrame = $wMain->new_tk__frame();
 my $wgEntry = $wgFrame->new_tk__entry(-width=>80,
 				      -textvariable=>\$input,
 				      -validate=>"key", # "none" "key" "focus" "focusin" "focusout" "all"
-				      -validatecommand=>[\&command_validate, Tkx::Ev('%P')],
+				      -validatecommand=>[\&command_validate,
+							 Tkx::Ev('%d','%i','%P','%s','%S', '%v','%V','%W'),
+							 "parameter to be",
+							],
 				      -invalidcommand=>\&command_invalid,
 				   );
-my $wgLabel= $wgFrame->new_tk__label(-textvariable=>\$result);
+my $wgLabel= $wgFrame->new_tk__label();
 
 my $wSub = $wMain->new_toplevel;
 $wSub->g_wm_title("debug window");
@@ -33,15 +36,24 @@ $wgText->g_grid();
 $wMain->g_bind("<Key-Escape>", sub{$wMain->g_destroy});
 $wgEntry->g_bind("<Key-Return>", sub{&debugTo($input);
 				     $wgEntry->delete(0,"end");
-				     $result=$input;
 				   });
 $wgEntry->g_focus();
-
 
 Tkx::MainLoop();
 
 sub command_validate{
-  $result = shift @_;
+  my $d = shift;		# type of action
+  my $i = shift;		# index of character
+  my $P = shift;		# new value of entry
+  my $s = shift;		# current value of entry
+  my $S = shift;		# text string being inserted/deleted
+  my $v = shift;		# value of '-validate' option
+  my $V = shift;		# validation condition(key, focusin, focusout, focused)
+  my $W = shift;		# name of entry widget
+  my $param = shift;
+
+  $wgLabel->configure(-text=>$P);
+  debugTo("$d  $i  $P  $s  $S  $v  $V  $W $param");
   return 1;
 }
 
@@ -64,3 +76,4 @@ sub debugTo{
   $wgText->insert_end($msg);
   $wgText->configure(-state=>"disabled");
 }
+
