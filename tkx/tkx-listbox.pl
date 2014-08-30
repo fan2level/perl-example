@@ -4,6 +4,14 @@ use strict;
 use Tkx;
 use encoding 'cp949';		# for Korean, Windows
 
+my @listbox_options = qw(-activestyle
+			 -height
+			 -listvariable
+			 -selectmode
+			 -state
+			 -width
+		       );
+
 # my $list_items = "{list1} {list2} {abc}"; # '-listvariable' format
 my @list_items = qw(list1 list2 abc def aac apple maso liter);
 my $list_items = '';
@@ -71,14 +79,6 @@ $wgButton4->g_grid(-column=>1, -row=>5);
 $wgEntry->g_focus();
 
 Tkx::MainLoop();
-
-my @listbox_options = qw(-activestyle
-			 -height
-			 -listvariable
-			 -selectmode
-			 -state
-			 -width
-		       );
 
 sub when_selected{
   return unless ($wgListbox->size() gt "0");
