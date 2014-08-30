@@ -4,7 +4,9 @@ use strict;
 use Tkx;
 use encoding 'cp949';		# for Korean, Windows
 
-my $list_items = "{list1} {list2} {ÇÑ±Û} {abc}"; # '-listvariable' format
+# my $list_items = "{list1} {list2} {abc}"; # '-listvariable' format
+my @list_items = qw(list1 list2 abc def aac apple maso liter);
+my $list_items = '';
 
 my $wMain = Tkx::widget->new(".");
 $wMain->g_wm_title("listbox widget");
@@ -12,7 +14,7 @@ $wMain->g_wm_title("listbox widget");
 my $frm = $wMain->new_ttk__frame(-padding=>"5 5 5 5");
 my $wgListbox = $frm->new_tk__listbox(
 				      -height=>10,
-				      -listvariable=>\$list_items
+				      # -listvariable=>\$list_items
 				      );
 my $wgEntry = $frm->new_tk__entry(-width=>40,
 				  -text=>"input",
@@ -33,6 +35,14 @@ my $wgButton2= $frm->new_tk__button(-width=>40,
 				    -command=>\&command_common,
 				    );
 
+my $wgButton3= $frm->new_tk__button(-width=>40,
+				    -text=>"options",
+				    -command=>\&command_options,
+				    );
+my $wgButton4= $frm->new_tk__button(-width=>40,
+				    -text=>"configure",
+				    -command=>\&command_configure,
+				   );
 my $wSub = $wMain->new_toplevel;
 $wSub->g_wm_title("debug window");
 my $wgText = $wSub->new_tk__text(-width=>160, -height=>24,
@@ -41,26 +51,55 @@ my $wgText = $wSub->new_tk__text(-width=>160, -height=>24,
 				 );
 $wgText->g_grid();
 
+$list_items = $list_items.'{'.$_.'} ' foreach (@list_items);
+$wgListbox->configure("-listvariable", \$list_items);
+$wgListbox->selection_set(0) if ($wgListbox->size > 0);
+
 $wMain->g_bind("<Key-Escape>", sub{$wMain->g_destroy();});
 $wgListbox->g_bind("<<ListboxSelect>>", \&when_selected);
 
 $frm->g_grid();
-$wgListbox->g_grid(-column=>0, -row=>0, -rowspan=>4);
-$wgListbox->selection_set(0) if ($wgListbox->size > 0);
+$wgListbox->g_grid(-column=>0, -row=>0, -rowspan=>6);
+
 $wgEntry->g_grid(-column=>1, -row=>0);
 $wgButton->g_grid(-column=>1, -row=>1);
 $wgButton1->g_grid(-column=>1, -row=>2);
 $wgButton2->g_grid(-column=>1, -row=>3);
+$wgButton3->g_grid(-column=>1, -row=>4);
+$wgButton4->g_grid(-column=>1, -row=>5);
 
 $wgEntry->g_focus();
 
 Tkx::MainLoop();
 
+my @listbox_options = qw(-activestyle
+			 -height
+			 -listvariable
+			 -selectmode
+			 -state
+			 -width
+		       );
+
 sub when_selected{
+  return unless ($wgListbox->size() gt "0");
+
   my $index = $wgListbox->curselection();
   my $value = $wgListbox->get($index);
 
   debugTo("$index => $value");
+}
+
+sub command_configure{
+  debugTo($wgListbox->configure($_)) foreach (@listbox_options);
+  $wgListbox->configure("-activestyle", "dotbox", # underline or none
+			"-height", 25,
+			"-selectmode", "single", # browse or multiple or extended
+			"-state", "disabled",
+		       );
+}
+
+sub command_options{
+  debugTo($_."\t\t\t".$wgListbox->cget($_)) foreach (@listbox_options);
 }
 
 sub command_common{
@@ -71,6 +110,13 @@ sub command_common{
   debugTo("command->index(0)  ". $index);
   $index = $wgListbox->index("end");
   debugTo("command->index(\"end\")  ".$index);
+
+  # $wgListbox->active(0);
+
+  debugTo("size ".$wgListbox->size());
+
+  my ($x, $y, $width, $height) = split(/\s+/, $wgListbox->bbox(0));
+  debugTo("$x $y $width $height") if($wgListbox->size() > 0);
 }
 
 sub command_button{
@@ -101,7 +147,12 @@ sub command_button1{
 sub command_validate{
   my $P = shift;
 
+  $list_items = '';
+  foreach (@list_items){
+    $list_items = $list_items.' {'.$_.'}' if (/.*$P.*/i)
+  }
   debugTo("input => $P");
+  debugTo($list_items);
   return 1;
 }
 
