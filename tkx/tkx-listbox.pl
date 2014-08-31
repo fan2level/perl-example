@@ -13,7 +13,7 @@ my @listbox_options = qw(-activestyle
 		       );
 
 # my $list_items = "{list1} {list2} {abc}"; # '-listvariable' format
-my @list_items = qw(list1 list2 abc def aac apple maso liter);
+my @list_items = ("list1", "list2", "abc", "def", "aac", "apple maso", "liter");
 my $list_items = '';
 
 my $wMain = Tkx::widget->new(".");

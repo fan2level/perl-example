@@ -63,6 +63,7 @@ sub command_invalid{
 }
 
 sub debugTo{
+  return unless (defined($wgText));
   my ($msg) = @_;
   my $numlines = $wgText->index("end - 1 line");
   $wgText->configure(-state=>"normal");
